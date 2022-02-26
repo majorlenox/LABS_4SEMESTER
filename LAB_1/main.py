@@ -16,13 +16,13 @@ def less(a, b):
 
 
 def partition_greater(array, begin, end):
-    pivot = begin
-    l, r = begin + 1, end
+    pivot = end
+    l, r = begin, end
     while True:
-        while (array[r] >= array[pivot]) & (l < r):
-            r -= 1
         while (array[l] <= array[pivot]) & (l < r):
             l += 1
+        while (array[r] >= array[pivot]) & (l < r):
+            r -= 1
         if l < r:
             array[l], array[r] = array[r], array[l]
             l, r = l + 1, r - 1
@@ -35,13 +35,13 @@ def partition_greater(array, begin, end):
 
 
 def partition_less(array, begin, end):
-    pivot = end
+    pivot = begin
     l, r = begin, end
     while True:
-        while (array[l] >= array[pivot]) & (l < r):
-            l += 1
         while (array[r] <= array[pivot]) & (l < r):
             r -= 1
+        while (array[l] >= array[pivot]) & (l < r):
+            l += 1
 
         if l < r:
             array[l], array[r] = array[r], array[l]
@@ -71,8 +71,8 @@ def quick_sort_less(array, begin, end):
 
 
 def quick_sort_ret(array, begin, end, return_dict):
-    numbers1 = array
-    numbers2 = array
+    numbers1 = array.copy()
+    numbers2 = array.copy()
     quick_sort_greater(numbers1, begin, end)
     return_dict[5] = proc1.get_duration()
     return_dict[0] = numbers1
@@ -192,7 +192,7 @@ while c != '0':
     print("Choose action:\n 0 - Quit\n 1 - Generate new SHA1 file\n 2 - Select the SHA1 file and sort it")
     c = input()
     if c == '1':
-        print("Enter number of SHA1 (one SHA1 has 120 bits)")
+        print("Enter number of SHA1 (one SHA1 has 160 bits)")
         n = input()
         generate_sha1_file(int(n))
         print("New file ./SHA1.txt was created")
@@ -206,7 +206,7 @@ while c != '0':
             sha1_unsorted = file.read()
             file.close()
             sha1_numbers = from_sha1_to_numbers(sha1_unsorted)
-            print("SHA1 numbers: ", sha1_numbers)
+         #   print("SHA1 numbers: ", sha1_numbers)
             manager = multiprocessing.Manager()
             return_dict = manager.dict()
             proc1 = TimedProcess(target=quick_sort_ret, args=(sha1_numbers, 0, len(sha1_numbers) - 1, return_dict))
@@ -216,10 +216,10 @@ while c != '0':
             proc1.join()
             proc2.join()
 
-          #  print(return_dict[0])
-          #  print(return_dict[1])
-          #  print(return_dict[2])
-          #  print(return_dict[3])
+            #print(return_dict[0])
+            #print(return_dict[1])
+            #print(return_dict[2])
+            #print(return_dict[3])
 
             file = open("./SHA1_sorted_qsGreater.txt", "w")
             sha1_sorted = from_numbers_to_sha1(return_dict[0])
