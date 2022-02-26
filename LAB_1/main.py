@@ -7,45 +7,42 @@ from multiprocessing import Process, Pipe
 from threading import Thread
 
 
-def greater(a, b):
+def greater(a, b):  # increasing
     return a < b
 
 
-def less(a, b):
+def less(a, b):     # decreasing
     return a > b
 
 
 def partition_greater(array, begin, end):
-    pivot = end
+    pivot = begin
     l, r = begin, end
     while True:
-        while (array[l] <= array[pivot]) & (l < r):
-            l += 1
-        while (array[r] >= array[pivot]) & (l < r):
+        while (array[r][0] >= array[pivot][0]) & (l < r):
             r -= 1
+        while (array[l][0] <= array[pivot][0]) & (l < r):
+            l += 1
         if l < r:
             array[l], array[r] = array[r], array[l]
-            l, r = l + 1, r - 1
         else:
             break
 
     array[pivot], array[l] = array[l], array[pivot]
 
-    return l
+    return r
 
 
 def partition_less(array, begin, end):
-    pivot = begin
+    pivot = end
     l, r = begin, end
     while True:
-        while (array[r] <= array[pivot]) & (l < r):
-            r -= 1
-        while (array[l] >= array[pivot]) & (l < r):
+        while (array[l][0] >= array[pivot][0]) & (l < r):
             l += 1
-
+        while (array[r][0] <= array[pivot][0]) & (l < r):
+            r -= 1
         if l < r:
             array[l], array[r] = array[r], array[l]
-            l, r = l + 1, r - 1
         else:
             break
 
@@ -71,14 +68,13 @@ def quick_sort_less(array, begin, end):
 
 
 def quick_sort_ret(array, begin, end, return_dict):
-    numbers1 = array.copy()
-    numbers2 = array.copy()
-    quick_sort_greater(numbers1, begin, end)
+    numbers = array.copy()
+    quick_sort_greater(array, begin, end)
     return_dict[5] = proc1.get_duration()
-    return_dict[0] = numbers1
-    quick_sort_less(numbers2, begin, end)
+    return_dict[0] = array
+    quick_sort_less(numbers, begin, end)
     return_dict[6] = proc1.get_duration() - return_dict[5]
-    return_dict[1] = numbers2
+    return_dict[1] = numbers
 
 
 def merge_sort_ret(array, begin, end, return_dict):
@@ -101,7 +97,7 @@ def merge(l, r, comparator):
     result = [None] * (len(l) + len(r))
     i, j = 0, 0
     while (i < len(l)) & (j < len(r)):
-        if comparator(l[i], r[j]):
+        if comparator(l[i][0], r[j][0]):
             result[i + j] = l[i]
             i += 1
         else:
@@ -121,29 +117,18 @@ def generate_sha1_file(n):
     sha1_file = open("./SHA1.txt", 'w+')
     for i in range(n):
         hash_object = hashlib.sha1(random.randbytes(1000))
-        sha1_file.write(hash_object.hexdigest())
+        if i != n - 1:
+            sha1_file.write(hash_object.hexdigest() + '\n')
+        else:
+            sha1_file.write(hash_object.hexdigest())
     sha1_file.close()
 
 
-def from_sha1_to_numbers(sha1):
+def from_sha1_to_numbers(sha1_array):
     numbers = []  # every 16 hex (64 bits) becomes one decimal number (from 0 to 2^64 - 1)
-    while len(sha1) != 0:
-        if len(sha1) > 16:
-            numbers.append(int(sha1[0:16], 16))
-            sha1 = sha1[16:]
-        else:
-            numbers.append(int(sha1[0:len(sha1)], 16))
-            sha1 = []
-
+    for sha1 in sha1_array:
+        numbers.append((int(sha1[0:16], 16), sha1))
     return numbers
-
-
-def from_numbers_to_sha1(numbers):
-    sha1 = []
-    for number in numbers:
-        sha1.append(hex(number)[2:])
-
-    return sha1
 
 
 class TimedProcess(Process):
@@ -203,50 +188,44 @@ while c != '0':
             print("This file does not exist!")
         else:
             file = open(sha1_path, 'r')
-            sha1_unsorted = file.read()
+            sha1_unsorted = file.read().split('\n')
             file.close()
-            sha1_numbers = from_sha1_to_numbers(sha1_unsorted)
-         #   print("SHA1 numbers: ", sha1_numbers)
+
+            sha1_n_pair = from_sha1_to_numbers(sha1_unsorted)
+            # for number, sha1 in sha1_n_pair:
+            #     print(str(number) + " " + str(sha1))
+
             manager = multiprocessing.Manager()
             return_dict = manager.dict()
-            proc1 = TimedProcess(target=quick_sort_ret, args=(sha1_numbers, 0, len(sha1_numbers) - 1, return_dict))
-            proc2 = TimedProcess(target=merge_sort_ret, args=(sha1_numbers, 0, len(sha1_numbers) - 1, return_dict))
+            proc1 = TimedProcess(target=quick_sort_ret, args=(sha1_n_pair, 0, len(sha1_n_pair) - 1, return_dict))
+            proc2 = TimedProcess(target=merge_sort_ret, args=(sha1_n_pair, 0, len(sha1_n_pair) - 1, return_dict))
             proc1.start()
             proc2.start()
             proc1.join()
             proc2.join()
 
-            #print(return_dict[0])
-            #print(return_dict[1])
-            #print(return_dict[2])
-            #print(return_dict[3])
-
             file = open("./SHA1_sorted_qsGreater.txt", "w")
-            sha1_sorted = from_numbers_to_sha1(return_dict[0])
-            for sha1 in sha1_sorted:
-                file.write(str(sha1) + '\n')
-            file.write('\n Quick sort greater, time: ' + str(return_dict[5]) + 'ns\n')
+            for sha1 in return_dict[0]:
+                file.write(str(sha1[1]) + '\n')
+            file.write('\n Quick sort greater, time: ' + str(return_dict[5] / 1000000000) + 's\n')
             file.close()
 
             file = open("./SHA1_sorted_qsLess.txt", "w")
-            sha1_sorted = from_numbers_to_sha1(return_dict[1])
-            for sha1 in sha1_sorted:
-                file.write(str(sha1) + '\n')
-            file.write('\n Quick sort less, time: ' + str(return_dict[6]) + 'ns\n')
+            for sha1 in return_dict[1]:
+                file.write(str(sha1[1]) + '\n')
+            file.write('\n Quick sort less, time: ' + str(return_dict[6] / 1000000000) + 's\n')
             file.close()
 
             file = open("./SHA1_sorted_msGreater.txt", "w")
-            sha1_sorted = from_numbers_to_sha1(return_dict[2])
-            for sha1 in sha1_sorted:
-                file.write(str(sha1) + '\n')
-            file.write('\n Merge sort greater, time: ' + str(return_dict[7]) + 'ns\n')
+            for sha1 in return_dict[2]:
+                file.write(str(sha1[1]) + '\n')
+            file.write('\n Merge sort greater, time: ' + str(return_dict[7] / 1000000000) + 's\n')
             file.close()
 
             file = open("./SHA1_sorted_msLess.txt", "w")
-            sha1_sorted = from_numbers_to_sha1(return_dict[3])
-            for sha1 in sha1_sorted:
-                file.write(str(sha1) + '\n')
-            file.write('\n Merge sort greater, time: ' + str(return_dict[8]) + 'ns\n')
+            for sha1 in return_dict[3]:
+                file.write(str(sha1[1]) + '\n')
+            file.write('\n Merge sort greater, time: ' + str(return_dict[8] / 1000000000) + 's\n')
             file.close()
 
             print("Sorted sha1 were saved in ./SHA1_sorted.txt")
