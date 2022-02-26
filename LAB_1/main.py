@@ -7,7 +7,15 @@ from multiprocessing import Process, Pipe
 from threading import Thread
 
 
-def partition(array, begin, end):
+def greater(a, b):
+    return a < b
+
+
+def less(a, b):
+    return a > b
+
+
+def partition_greater(array, begin, end):
     pivot = end
     l, r = begin, end
     while True:
@@ -26,32 +34,74 @@ def partition(array, begin, end):
     return l
 
 
-def quick_sort(array, begin, end):
+def partition_less(array, begin, end):
+    pivot = end
+    l, r = begin, end
+    while True:
+        while (array[l] >= array[pivot]) & (l < r):
+            l += 1
+        while (array[r] <= array[pivot]) & (l < r):
+            r -= 1
+
+        if l < r:
+            array[l], array[r] = array[r], array[l]
+            l, r = l + 1, r - 1
+        else:
+            break
+
+    array[pivot], array[l] = array[l], array[pivot]
+
+    return l
+
+
+def quick_sort_greater(array, begin, end):
     if begin >= end:
         return
-    p = partition(array, begin, end)
-    quick_sort(array, begin, p - 1)
-    quick_sort(array, p + 1, end)
+    p = partition_greater(array, begin, end)
+    quick_sort_greater(array, begin, p - 1)
+    quick_sort_greater(array, p + 1, end)
+
+
+def quick_sort_less(array, begin, end):
+    if begin >= end:
+        return
+    p = partition_less(array, begin, end)
+    quick_sort_less(array, begin, p - 1)
+    quick_sort_less(array, p + 1, end)
+
+
+def quick_sort_ret(array, begin, end, return_dict):
+    numbers1 = array
+    numbers2 = array
+    quick_sort_greater(numbers1, begin, end)
+    return_dict[5] = proc1.get_duration()
+    return_dict[0] = numbers1
+    quick_sort_less(numbers2, begin, end)
+    return_dict[6] = proc1.get_duration() - return_dict[5]
+    return_dict[1] = numbers2
 
 
 def merge_sort_ret(array, begin, end, return_dict):
-    return_dict[0] = merge_sort(array, begin, end)
+    return_dict[2] = merge_sort(array, begin, end, greater)
+    return_dict[7] = proc2.get_duration()
+    return_dict[3] = merge_sort(array, begin, end, less)
+    return_dict[8] = proc2.get_duration() - return_dict[7]
 
 
-def merge_sort(array, begin, end):
+def merge_sort(array, begin, end, comparator):
     if begin - end == 0:
         return [array[begin]]
     m = int((begin + end) / 2)
-    l = merge_sort(array, begin, m)
-    r = merge_sort(array, m + 1, end)
-    return merge(l, r)
+    l = merge_sort(array, begin, m, comparator)
+    r = merge_sort(array, m + 1, end, comparator)
+    return merge(l, r, comparator)
 
 
-def merge(l, r):
+def merge(l, r, comparator):
     result = [None] * (len(l) + len(r))
     i, j = 0, 0
     while (i < len(l)) & (j < len(r)):
-        if l[i] < r[j]:
+        if comparator(l[i], r[j]):
             result[i + j] = l[i]
             i += 1
         else:
@@ -86,6 +136,14 @@ def from_sha1_to_numbers(sha1):
             sha1 = []
 
     return numbers
+
+
+def from_numbers_to_sha1(numbers):
+    sha1 = []
+    for number in numbers:
+        sha1.append(hex(number)[2:])
+
+    return sha1
 
 
 class TimedProcess(Process):
@@ -151,15 +209,44 @@ while c != '0':
             print("SHA1 numbers: ", sha1_numbers)
             manager = multiprocessing.Manager()
             return_dict = manager.dict()
-            proc1 = TimedProcess(target=quick_sort, args=(sha1_numbers, 0, len(sha1_numbers) - 1))
+            proc1 = TimedProcess(target=quick_sort_ret, args=(sha1_numbers, 0, len(sha1_numbers) - 1, return_dict))
             proc2 = TimedProcess(target=merge_sort_ret, args=(sha1_numbers, 0, len(sha1_numbers) - 1, return_dict))
             proc1.start()
             proc2.start()
             proc1.join()
             proc2.join()
-            print(" Quick sort time: ", proc1.get_duration(), " ns")
-            print(" Merge sort time: ", proc2.get_duration(), " ns")
-            file = open("./SHA1_sorted.txt", "w")
-            file.write(str(return_dict[0]))
+
+          #  print(return_dict[0])
+          #  print(return_dict[1])
+          #  print(return_dict[2])
+          #  print(return_dict[3])
+
+            file = open("./SHA1_sorted_qsGreater.txt", "w")
+            sha1_sorted = from_numbers_to_sha1(return_dict[0])
+            for sha1 in sha1_sorted:
+                file.write(str(sha1) + '\n')
+            file.write('\n Quick sort greater, time: ' + str(return_dict[5]) + 'ns\n')
             file.close()
-            print("Sorted numbers were saved in ./SHA1_sorted.txt")
+
+            file = open("./SHA1_sorted_qsLess.txt", "w")
+            sha1_sorted = from_numbers_to_sha1(return_dict[1])
+            for sha1 in sha1_sorted:
+                file.write(str(sha1) + '\n')
+            file.write('\n Quick sort less, time: ' + str(return_dict[6]) + 'ns\n')
+            file.close()
+
+            file = open("./SHA1_sorted_msGreater.txt", "w")
+            sha1_sorted = from_numbers_to_sha1(return_dict[2])
+            for sha1 in sha1_sorted:
+                file.write(str(sha1) + '\n')
+            file.write('\n Merge sort greater, time: ' + str(return_dict[7]) + 'ns\n')
+            file.close()
+
+            file = open("./SHA1_sorted_msLess.txt", "w")
+            sha1_sorted = from_numbers_to_sha1(return_dict[3])
+            for sha1 in sha1_sorted:
+                file.write(str(sha1) + '\n')
+            file.write('\n Merge sort greater, time: ' + str(return_dict[8]) + 'ns\n')
+            file.close()
+
+            print("Sorted sha1 were saved in ./SHA1_sorted.txt")
