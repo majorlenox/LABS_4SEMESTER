@@ -16,13 +16,13 @@ def less(a, b):
 
 
 def partition_greater(array, begin, end):
-    pivot = end
-    l, r = begin, end
+    pivot = begin
+    l, r = begin + 1, end
     while True:
-        while (array[l] <= array[pivot]) & (l < r):
-            l += 1
         while (array[r] >= array[pivot]) & (l < r):
             r -= 1
+        while (array[l] <= array[pivot]) & (l < r):
+            l += 1
         if l < r:
             array[l], array[r] = array[r], array[l]
             l, r = l + 1, r - 1
