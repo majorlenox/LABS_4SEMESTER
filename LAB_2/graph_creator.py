@@ -41,7 +41,7 @@ if __name__ == '__main__':
     V = 10
     if sys.argv.__contains__('-V'):
         V = int(sys.argv[sys.argv.index('-V') + 1])
-    E = random.randint(V - 1, V * 3)
+    E = random.randint(V - 1, V * 2)
 
     if sys.argv.__contains__('-E'):
         E = int(sys.argv[sys.argv.index('-E') + 1])
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     for v in range(V):
         vertexes.append(random.randint(name_from, name_to))
 
-    kraskals_algorithm(graph, E, vertexes)  # only linked graphs
+    kruskals_algorithm(graph, E, vertexes)  # only linked graphs
 
     for e in range(E - (V - 1)):
         v_from = vertexes[random.randint(0, V - 1)]
