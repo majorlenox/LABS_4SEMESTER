@@ -7,12 +7,27 @@ import sys
 
 # Visualisation
 
-def showGraph(graph, vertexes):
-    G = nx.Graph()
+
+def showGraph(graph):
+    G = nx.MultiGraph()
     G.add_edges_from(graph)
-    color_map = ["red" for i in range(len(vertexes))]
-    nx.draw_networkx(G, with_labels=True, font_color='black', font_size=16, node_color=color_map)
-    plt.savefig("Graph", dpi=120)
+    pos = nx.circular_layout(G)
+    nx.draw_networkx_nodes(G, pos, node_color='r', node_size=250, alpha=1)
+    nx.draw_networkx_labels(G, pos, font_size=9)
+    ax = plt.gca()
+    for e in G.edges:
+        ax.annotate("",
+                    xy=pos[e[0]], xycoords='data',
+                    xytext=pos[e[1]], textcoords='data',
+                    arrowprops=dict(arrowstyle="-", color="0.1",
+                                    shrinkA=9, shrinkB=9,
+                                    patchA=None, patchB=None,
+                                    connectionstyle="arc3,rad=rrr".replace('rrr', str(0.3 * e[2])),
+                                    ),
+                    )
+    ax.margins(0.05)
+    plt.axis('off')
+    plt.savefig("graph", dpi=120)
 
 
 # Generation
@@ -24,15 +39,23 @@ def kruskals_algorithm(graph, E, vertexes):
     for i in range(V):
         color[vertexes[i]] = vertexes[i]
 
-    for e in range(V - 1):
-        while len(set(list(color.values()))) != 1:
-            v_from = vertexes[random.randint(0, V - 1)]
-            v_to = vertexes[random.randint(0, V - 1)]
-            if color[v_from] != color[v_to]:
-                for i in range(V - 1):
-                    if color[vertexes[i]] == color[v_to]:
-                        color[vertexes[i]] = color[v_from]
-                graph.append([v_from, v_to])
+    while len(set(list(color.values()))) != 1:
+        v_from = vertexes[random.randint(0, V - 1)]
+        v_to = vertexes[random.randint(0, V - 1)]
+        if color[v_from] != color[v_to]:
+            temp_color = color[v_to]
+            for i in range(V):
+                if color[vertexes[i]] == temp_color:
+                    color[vertexes[i]] = color[v_from]
+            graph.append([v_from, v_to])
+
+
+def saveGraph(graph):
+    f = open('graph.bin', 'wb')
+    for e in graph:
+        bt = bytes(str(e[0]) + ' ' + str(e[1]) + '\n', encoding='utf-8')
+        f.write(bt)
+    f.close()
 
 
 if __name__ == '__main__':
@@ -50,7 +73,7 @@ if __name__ == '__main__':
             exit(1)
     #
 
-    graph = []
+    graph = []  # list of edges
     vertexes = []
 
     # naming
@@ -72,4 +95,7 @@ if __name__ == '__main__':
             v_to = vertexes[random.randint(0, V - 1)]
         graph.append([v_from, v_to])
     if sys.argv.__contains__("-S"):
-        showGraph(graph, vertexes)
+        showGraph(graph)
+        print("The graph image was saved in a file graph.png")
+    saveGraph(graph)
+    print("The graph was saved in graph.bin")
