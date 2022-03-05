@@ -12,5 +12,11 @@ LAB_2: Python 3.9, Creating random graphs and finding Hamiltonian cycles and Eul
             Output:
                 ./graph.bin              - edges of the graph in binary format
                 ./graph.png (optional)   - graph image, created with networkx and matplotlib.pyplot
-
+    
+    graph.bin - binary utf-8 file with structure, where each line encodes one edge:
+            number_of_node + ' ' + number_of_node + '\n'
+            number_of_node + ' ' + number_of_node + '\n'
+            number_of_node + ' ' + number_of_node + '\n'
+            number_of_node + ' ' + number_of_node + '\n'
+            
     
