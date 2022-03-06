@@ -61,7 +61,7 @@ def saveGraph(graph):
 if __name__ == '__main__':
 
     # init V,E
-    V = 10
+    V = 5
     if sys.argv.__contains__('-V'):
         V = int(sys.argv[sys.argv.index('-V') + 1])
     E = random.randint(V - 1, V * 2)
@@ -84,7 +84,10 @@ if __name__ == '__main__':
         name_to = name_from * 10 - 1
 
     for v in range(V):
-        vertexes.append(random.randint(name_from, name_to))
+        r = random.randint(name_from, name_to)
+        while r in vertexes:
+            r = random.randint(name_from, name_to)
+        vertexes.append(r)
 
     kruskals_algorithm(graph, E, vertexes)  # only linked graphs
 
