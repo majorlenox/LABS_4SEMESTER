@@ -33,18 +33,21 @@ Finds and outputs (if there is) an Euler or Hamilton cycle
 
 
 - Output:
-  - ./Eulerian_cycle.png (optional)   - Eulerian cycle image, created with networkx and matplotlib.pyplot
-  - ./Hamiltonian_cycle.png (optional)- Hamiltonian cycle image
+  - ./Eulerian_cycle.png (optional)    - Eulerian cycle image, created with networkx and matplotlib.pyplot
+  - ./Hamiltonian_cycle.png (optional) - Hamiltonian cycle image
   
 
 Files structure
 -
 
+graph.bin
+-
+- binary utf-8 file with structure, where each line encodes one edge:
+  
+      node_name + ' ' + node_name + '\n'
+      node_name + ' ' + node_name + '\n'
+      node_name + ' ' + node_name + '\n'
+      node_name + ' ' + node_name + '\n'
 
-    graph.bin - binary utf-8 file with structure, where each line encodes one edge:
-            number_of_node + ' ' + number_of_node + '\n'
-            number_of_node + ' ' + number_of_node + '\n'
-            number_of_node + ' ' + number_of_node + '\n'
-            number_of_node + ' ' + number_of_node + '\n'
-            
+    *node_name is an integer
     
