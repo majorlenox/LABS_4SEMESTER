@@ -13,7 +13,7 @@ def is_eulerian_graph(graph):
     for e in graph:
         degree[e[0]] += 1
         degree[e[1]] += 1
-    print(degree)
+
     for v in degree:
         if degree[v] % 2 != 0:
             return False
