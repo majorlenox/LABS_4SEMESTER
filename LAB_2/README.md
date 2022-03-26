@@ -1,5 +1,5 @@
-LAB_2: Python 3.9, Creating random graphs and finding hamiltonian and eulerian cycles  
--
+LAB_2: Python 3.9, Creating random graphs and finding hamiltonian and eulerian cycles
+=
 
 graph_creator.py: 
 -
