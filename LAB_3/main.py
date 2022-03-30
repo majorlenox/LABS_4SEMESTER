@@ -1,7 +1,7 @@
 import argparse
-import math
 import random
 
+Miller_Rabin_precision = 300
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -23,6 +23,44 @@ def Extend_Euclid(a, b):
     d, x1, y1 = Extend_Euclid(b, a % b)
     return d, y1, x1 - (a // b) * y1
 
+def Miller_Rabin(n,s):
+    for j in range(s):
+        if Witness(n):
+            return 1            # composite number
+    return 0
+
+def Witness(n):
+    u = n - 1
+    t = 0
+    while u % 2 == 0:
+        u //= 2
+        t += 1
+    a = random.randint(1, n - 1)
+    x = Modular_Exponentiation(a, u, n)
+    for i in range(t):
+        x1 = x
+        x = (x**2) % n
+        if x == 1 and x1 != 1 and x1 != n - 1:
+            return True
+    if x != 1:
+        return True
+    return False
+
+
+def Modular_Exponentiation(a, u, n):
+    c = 0
+    d = 1
+    b = bin(u).removeprefix('0b')
+    b = list(map(int, list(b)))
+    k = len(b)
+    for i in range(k):
+        c *= 2
+        d = (d**2) % n
+        if b[k-i-1] == 1:
+            c += 1
+            d = (d*a) % n
+    return d
+
 
 def Show_Factorize(n, dict):
     print(str(n) + " = ", end="")
@@ -40,38 +78,37 @@ def Show_Factorize(n, dict):
 
 def Pollard_Rho(n):
     factors = {}  # prime divisors
-    visited = {}
     n1 = n
     i = 1
-    y = x = random.randint(0, n - 1)
+    y = x = random.randint(1, n - 1)
     k = 2
     while n != 1:
         i += 1
         x = (x ** 2 - 1) % n
-        d = Extend_Euclid(y - x, n)[0]  # can be replaced by Lehmer's GCD algorithm
-        if visited.get(x) is not None:
-            if factors.get(n) and n != 1:
-                factors[n] += 1
-            else:
-                factors[n] = 1
-            break
-        visited[x] = 1
-        if d != 1 and d != n1 and factors.get(d) is None:
-            dfactors = Pollard_Rho(d)
+        d = Extend_Euclid(abs(y - x), n)[0]  # can be replaced by Lehmer's GCD algorithm
+        if d != 1 and factors.get(d) is None:
             r = 0
             while n % d == 0:
-                n = n // d
+                n //= d
                 r += 1
-            for s in dfactors.keys():
-                factors[s] = dfactors[s] * r
+            if Miller_Rabin(d, Miller_Rabin_precision):
+                dfactors = Pollard_Rho(d)
+                for s in dfactors.keys():
+                    factors[s] = dfactors[s] * r
+            else:
+                factors[d] = r
         if i == k:
+            if not Miller_Rabin(n, Miller_Rabin_precision):
+                factors[n] = 1
+                return factors
             y = x
             k = 2 * k
+
     return factors
 
 
 if __name__ == '__main__':
-    #    n = parse()
-    n = 123
+    #n = parse()
+    n = 12
     factors = Pollard_Rho(n)
     Show_Factorize(n, factors)
