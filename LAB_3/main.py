@@ -1,4 +1,5 @@
 import argparse
+import math
 import random
 
 
@@ -23,29 +24,54 @@ def Extend_Euclid(a, b):
     return d, y1, x1 - (a // b) * y1
 
 
-if __name__ == '__main__':
-    #n = parse()
-    n = 125
+def Show_Factorize(n, dict):
+    print(str(n) + " = ", end="")
+    keys = list(dict.keys())
+    for i in range(len(keys) - 1):
+        if dict[keys[i]] > 1:
+            print(str(keys[i]) + "^" + str(dict[keys[i]]) + " * ", end="")
+        else:
+            print(str(keys[i]) + " * ", end="")
+    if dict[keys[len(keys) - 1]] > 1:
+        print(str(keys[len(keys) - 1]) + "^" + str(dict[keys[len(keys) - 1]]))
+    else:
+        print(str(keys[len(keys) - 1]))
 
-    n1 = n  # check when number will be factorized
+
+def Pollard_Rho(n):
     factors = {}  # prime divisors
-    d = 1
-
-    #   Pollard-Rho
+    visited = {}
+    n1 = n
     i = 1
     y = x = random.randint(0, n - 1)
     k = 2
     while n != 1:
         i += 1
-        x = (x ** 2 - 1) % n + 1
+        x = (x ** 2 - 1) % n
         d = Extend_Euclid(y - x, n)[0]  # can be replaced by Lehmer's GCD algorithm
+        if visited.get(x) is not None:
+            if factors.get(n) and n != 1:
+                factors[n] += 1
+            else:
+                factors[n] = 1
+            break
+        visited[x] = 1
         if d != 1 and d != n1 and factors.get(d) is None:
+            dfactors = Pollard_Rho(d)
             r = 0
             while n % d == 0:
                 n = n // d
                 r += 1
-            factors[d] = r
+            for s in dfactors.keys():
+                factors[s] = dfactors[s] * r
         if i == k:
             y = x
             k = 2 * k
-    print(list(factors.items()))
+    return factors
+
+
+if __name__ == '__main__':
+    #    n = parse()
+    n = 123
+    factors = Pollard_Rho(n)
+    Show_Factorize(n, factors)
