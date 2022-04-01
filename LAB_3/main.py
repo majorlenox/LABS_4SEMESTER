@@ -1,7 +1,8 @@
 import argparse
 import random
 
-Miller_Rabin_precision = 300
+miller_rabin_precision = 4
+
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -17,29 +18,35 @@ def parse():
     return int(args.n, 10)
 
 
-def Extend_Euclid(a, b):
+def extend_euclid(a, b):
     if b == 0:
         return a, 1, 0
-    d, x1, y1 = Extend_Euclid(b, a % b)
+    d, x1, y1 = extend_euclid(b, a % b)
     return d, y1, x1 - (a // b) * y1
 
-def Miller_Rabin(n,s):
+
+def miller_rabin(n, s):
     for j in range(s):
-        if Witness(n):
-            return 1            # composite number
+        if witness(n):
+            return 1  # composite number
     return 0
 
-def Witness(n):
+
+def witness(n):
+    if n == 2:
+        return False
+    if n % 2 == 0:
+        return True
     u = n - 1
     t = 0
     while u % 2 == 0:
         u //= 2
         t += 1
     a = random.randint(1, n - 1)
-    x = Modular_Exponentiation(a, u, n)
-    for i in range(t):
+    x = modular_exponentiation(a, u, n)
+    for i in range(t + 1):
         x1 = x
-        x = (x**2) % n
+        x = (x ** 2) % n
         if x == 1 and x1 != 1 and x1 != n - 1:
             return True
     if x != 1:
@@ -47,7 +54,7 @@ def Witness(n):
     return False
 
 
-def Modular_Exponentiation(a, u, n):
+def modular_exponentiation(a, u, n):
     c = 0
     d = 1
     b = bin(u).removeprefix('0b')
@@ -55,16 +62,17 @@ def Modular_Exponentiation(a, u, n):
     k = len(b)
     for i in range(k):
         c *= 2
-        d = (d**2) % n
-        if b[k-i-1] == 1:
+        d = (d ** 2) % n
+        if b[i] == 1:
             c += 1
-            d = (d*a) % n
+            d = (d * a) % n
     return d
 
 
-def Show_Factorize(n, dict):
+def show_factorize(n, dict):
     print(str(n) + " = ", end="")
     keys = list(dict.keys())
+    keys.sort()
     for i in range(len(keys) - 1):
         if dict[keys[i]] > 1:
             print(str(keys[i]) + "^" + str(dict[keys[i]]) + " * ", end="")
@@ -76,39 +84,47 @@ def Show_Factorize(n, dict):
         print(str(keys[len(keys) - 1]))
 
 
-def Pollard_Rho(n):
-    factors = {}  # prime divisors
-    n1 = n
+def pollard_rho(n):
+    if not miller_rabin(n, miller_rabin_precision):
+        return n
+    d = 1
     i = 1
-    y = x = random.randint(1, n - 1)
+    y = x = random.randint(2, n - 1)
     k = 2
-    while n != 1:
+    while True:
         i += 1
         x = (x ** 2 - 1) % n
-        d = Extend_Euclid(abs(y - x), n)[0]  # can be replaced by Lehmer's GCD algorithm
-        if d != 1 and factors.get(d) is None:
-            r = 0
-            while n % d == 0:
-                n //= d
-                r += 1
-            if Miller_Rabin(d, Miller_Rabin_precision):
-                dfactors = Pollard_Rho(d)
-                for s in dfactors.keys():
-                    factors[s] = dfactors[s] * r
-            else:
-                factors[d] = r
+        if y - x == 0:
+            y = x = random.randint(2, n - 1)
+        else:
+            d = extend_euclid(y - x, n)[0]  # can be replaced by Lehmer's GCD algorithm
+        if d != 1 and d != n:
+            return d
         if i == k:
-            if not Miller_Rabin(n, Miller_Rabin_precision):
-                factors[n] = 1
-                return factors
             y = x
             k = 2 * k
 
+
+def factorize(n):
+    factors = {}
+    while n != 1:
+        if miller_rabin(n, miller_rabin_precision):
+            d = pollard_rho(n)
+            while miller_rabin(d, miller_rabin_precision):
+                d = pollard_rho(d)
+            if d not in factors.keys():
+                r = 0
+                while n % d == 0:
+                    n //= d
+                    r += 1
+                factors[d] = r
+        else:
+            factors[n] = 1
+            break
     return factors
 
 
 if __name__ == '__main__':
-    #n = parse()
-    n = 12
-    factors = Pollard_Rho(n)
-    Show_Factorize(n, factors)
+    n = parse()
+    factors = factorize(n)
+    show_factorize(n, factors)
