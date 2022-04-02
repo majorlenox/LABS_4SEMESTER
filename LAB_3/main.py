@@ -2,7 +2,7 @@ import argparse
 import random
 import time
 
-miller_rabin_precision = 4
+miller_rabin_precision = 200
 
 
 def parse():
@@ -58,7 +58,7 @@ def witness(n):
 def modular_exponentiation(a, u, n):
     c = 0
     d = 1
-    b = bin(u).removeprefix('0b')
+    b = bin(u)[2:]
     b = list(map(int, list(b)))
     k = len(b)
     for i in range(k):
