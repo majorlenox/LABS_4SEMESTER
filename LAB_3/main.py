@@ -1,5 +1,6 @@
 import argparse
 import random
+import time
 
 miller_rabin_precision = 4
 
@@ -126,5 +127,8 @@ def factorize(n):
 
 if __name__ == '__main__':
     n = parse()
+    t = time.time_ns()
     factors = factorize(n)
+    t = time.time_ns() - t
+    print('Time: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     show_factorize(n, factors)
