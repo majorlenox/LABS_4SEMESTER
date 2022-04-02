@@ -13,6 +13,7 @@ Factorizes a number specified in decimal or hexadecimal notation
 - flags: 
   - -d - The number for factorization is entered in decimal form  
   - -x - The number for factorization is entered in hexadecimal form
+  - -o - The number for factorization is entered in octal form
 
 
 - Output: 

@@ -1,8 +1,10 @@
 import argparse
 import random
+from math import gcd
+
 import time
 
-miller_rabin_precision = 200
+miller_rabin_precision = 20
 
 
 def parse():
@@ -22,13 +24,6 @@ def parse():
     return int(args.n, 10)
 
 
-def extend_euclid(a, b):
-    if b == 0:
-        return a, 1, 0
-    d, x1, y1 = extend_euclid(b, a % b)
-    return d, y1, x1 - (a // b) * y1
-
-
 def miller_rabin(n, s):
     for j in range(s):
         if witness(n):
@@ -37,20 +32,20 @@ def miller_rabin(n, s):
 
 
 def witness(n):
-    if n == 2:
+    if n == 2 or n == 3:
         return False
     if n % 2 == 0:
         return True
     u = n - 1
     t = 0
-    while u % 2 == 0:
-        u //= 2
+    while u & 1 == 0:
         t += 1
+        u >>= 1
     a = random.randint(1, n - 1)
     x = modular_exponentiation(a, u, n)
-    for i in range(t + 1):
+    for i in range(t):
         x1 = x
-        x = (x ** 2) % n
+        x = modular_exponentiation(x, 2, n)
         if x == 1 and x1 != 1 and x1 != n - 1:
             return True
     if x != 1:
@@ -89,19 +84,25 @@ def show_factorize(n, dict):
 
 
 def pollard_rho(n):
-    if not miller_rabin(n, miller_rabin_precision):
+    if n <= 3:
         return n
-    d = 1
+    if n % 2 == 0:
+        return 2
+    cycle = set()
+    count = 0
     i = 1
     y = x = random.randint(2, n - 1)
     k = 2
     while True:
+        count += 1
         i += 1
+        if x in cycle:
+            return n
+        elif count == 65537:
+            cycle.add(x)
+            count = 0
         x = (x ** 2 - 1) % n
-        if y - x == 0:
-            y = x = random.randint(2, n - 1)
-        else:
-            d = extend_euclid(y - x, n)[0]  # can be replaced by Lehmer's GCD algorithm
+        d = gcd(y - x, n)  # can be replaced by Lehmer's GCD algorithm
         if d != 1 and d != n:
             return d
         if i == k:
@@ -114,14 +115,22 @@ def factorize(n):
     while n != 1:
         if miller_rabin(n, miller_rabin_precision):
             d = pollard_rho(n)
-            while miller_rabin(d, miller_rabin_precision):
-                d = pollard_rho(d)
-            if d not in factors.keys():
-                r = 0
-                while n % d == 0:
-                    n //= d
-                    r += 1
-                factors[d] = r
+            if miller_rabin(d, miller_rabin_precision):
+                divs = factorize(d)
+                for d in divs:
+                    if d not in factors.keys():
+                        r = 0
+                        while n % d == 0:
+                            n //= d
+                            r += 1
+                        factors[d] = r
+            else:
+                if d not in factors.keys():
+                    r = 0
+                    while n % d == 0:
+                        n //= d
+                        r += 1
+                    factors[d] = r
         else:
             factors[n] = 1
             break
