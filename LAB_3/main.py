@@ -10,10 +10,13 @@ def parse():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-d", help="The number for factorization is entered in decimal form", action="store_true")
     group.add_argument("-x", help="The number for factorization is entered in hexadecimal form", action="store_true")
+    group.add_argument("-o", help="The number for factorization is entered in octal form", action="store_true")
     parser.add_argument("n", help="The number to factorize")
     args = parser.parse_args()
-    if args.d | args.x == 0:
-        print("Without flag -x or -d number " + args.n + " is interpreted as decimal")
+    if args.d | args.x | args.o == 0:
+        print("Without flag -x, -d or -o number " + args.n + " is interpreted as decimal")
+    if args.o:
+        return int(args.n, 8)
     if args.x:
         return int(args.n, 16)
     return int(args.n, 10)
