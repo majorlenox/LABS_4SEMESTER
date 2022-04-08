@@ -17,12 +17,12 @@ def parse():
     return args
 
 
-def generate_substrings(n, str_size):
+def generate_substrings(n, line_size):
     strs = []
     for i in range(n):
-        s = ''.join(random.choice(allowed_chars) for j in range(str_size))
+        s = ''.join(random.choice(allowed_chars) for j in range(line_size))
         while strs.__contains__(s) != 0:
-            s = ''.join(random.choice(allowed_chars) for j in range(str_size))
+            s = ''.join(random.choice(allowed_chars) for j in range(line_size))
         strs.append(s)
     return strs
 

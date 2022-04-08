@@ -23,27 +23,9 @@ Generates the following files:
   - -ss - Substring Size, how many characters will be in each line. Default=10
   - -ts - Text size, file size text.txt in kB. Default=10
   - -f  - Frequency of occurrence of lines from substrings.txt in text.txt. Default=5
-
-
-main.py:
--
-Factorizes a number specified in decimal or hexadecimal notation
-
-- Usage: 
-  - $ python3 main.py -d 2701
-  - output: 37, 73
   
-
-- flags: 
-  - -d - The number for factorization is entered in decimal form  
-  - -x - The number for factorization is entered in hexadecimal form
-  - -o - The number for factorization is entered in octal form
-
-
-- Output: 
-  - the sequence of prime factors
-
-
 Resources:
-- https://codesigningstore.com/what-is-the-best-hashing-algorithm
-- 
+- Bloom filter
+  - https://en.wikipedia.org/wiki/Bloom_filter
+  - https://github.com/Lexcorp3439/bloom-filter
+  - https://progi.pro/generirovanie-k-parno-nezavisimih-hesh-funkciy-3706183
