@@ -6,6 +6,7 @@ class BloomFilter:
     FILE = 'BloomFilter.bin'
     m = 0  # bloom size
     n = 0  # text file size
+    p = 311  # prime number
 
     def __init__(self, m, n):
         self.m = m
@@ -28,7 +29,7 @@ class BloomFilter:
             else:
                 s = buf[i: i + sub_size]
             for j in range(self.k):
-                r = mmh3.hash(s, j * 2701) % (self.m * 8)
+                r = mmh3.hash(s, j * self.p) % (self.m * 8)
                 arr[r] = True
         text_fd.close()
         bloom_fd = open(self.FILE, 'wb')
@@ -42,6 +43,16 @@ class BloomFilter:
                 + arr[i + 6] * 2 + arr[i + 7]
             file.write(bytes([a]))
 
-  #  def possibly_contains(self, substring):
-
-
+    def possibly_contains(self, substring):
+        bloom_fd = open(self.FILE, 'rb')
+        for i in range(self.k):
+            r = mmh3.hash(substring, i * self.p) % (self.m * 8)
+            bloom_fd.seek(int(r / 8))
+            cur_byte = bloom_fd.read(1)
+            if int(cur_byte) & (1 << (r % 8)):
+                continue
+            else:
+                bloom_fd.close()
+                return False
+        bloom_fd.close()
+        return True
