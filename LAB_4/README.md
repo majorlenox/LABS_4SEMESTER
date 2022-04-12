@@ -21,7 +21,7 @@ Generates the following files:
 - flags: 
   - -sn - Number of Substrings, how many lines would be in substrings.txt. Default=20  
   - -ss - Substring Size, how many characters will be in each line. Default=10
-  - -ts - Text size, file size text.txt in kB. Default=10
+  - -ts - Text size, file size text.txt in Bytes. Default=1024
   - -f  - Frequency of occurrence of lines from substrings.txt in text.txt. Default=5
   
 Resources:

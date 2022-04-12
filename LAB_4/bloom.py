@@ -1,5 +1,4 @@
 import math
-import struct
 import mmh3
 
 
@@ -14,24 +13,35 @@ class BloomFilter:
         self.k = int((m * 8) / n * math.log(2))  # hash number
 
     def fill(self, textfile, sub_size):
-        bloom_fd = open(self.FILE, 'w+b')
         text_fd = open(textfile, 'r')
-        buf = ''
+        buf_size = sub_size * 10
+        arr = [False] * (self.m * 8)  # array of 0 and 1
+        old_buf = ''
+        buf = text_fd.read(buf_size)
         for i in range(self.n):
-            if i % 1024 == 0:
-                buf = text_fd.read(1024)
-            s = buf[i: i + sub_size]
+            if i % buf_size - (buf_size - sub_size + 1) == 0:
+                old_buf = buf[buf_size - sub_size + 1: buf_size - 1]
+                buf = text_fd.read(buf_size)
+            if i % buf_size - (buf_size - sub_size + 1) >= 0:
+                s = old_buf[i % (buf_size + 1) - (buf_size - sub_size + 1): sub_size - 1] + \
+                    buf[0: i % (buf_size - sub_size + 1)]
+            else:
+                s = buf[i: i + sub_size]
             for j in range(self.k):
                 r = mmh3.hash(s, j * 2701) % (self.m * 8)
-                bloom_fd.seek(int(r / 8))
-                byte_before = bytes(bloom_fd.read(1))
-                print(str(int(r / 8)) + " " + str((1 << (r % 8))))
-                packed = bytes([int(byte_before) + int(bytes([1 << (r % 8)]), 16)])
-                print(packed)
-                #print(struct.pack('b', 32))
-                #packed = struct.pack('@B', (1 << (r % 8)))
-                #if len(byte_before) != 0:
-                #    packed = struct.pack('@B', byte_before[0]|packed[0])
-                bloom_fd.write(packed)
+                arr[r] = True
         text_fd.close()
+        bloom_fd = open(self.FILE, 'wb')
+        self.binary_write(arr, bloom_fd)
         bloom_fd.close()
+
+    @staticmethod
+    def binary_write(arr, file):
+        for i in range(0, len(arr), 8):
+            a = arr[i] * 128 + arr[i + 1] * 64 + arr[i + 2] * 32 + + arr[i + 3] * 16 + arr[i + 4] * 8 + arr[i + 5] * 4 \
+                + arr[i + 6] * 2 + arr[i + 7]
+            file.write(bytes([a]))
+
+  #  def possibly_contains(self, substring):
+
+

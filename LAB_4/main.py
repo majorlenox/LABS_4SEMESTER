@@ -1,6 +1,5 @@
 import argparse
 import math
-import mmh3
 import time
 import zlib
 import hashlib
@@ -17,14 +16,14 @@ def parse():
     args = parser.parse_args()
     return args
 
-class args:
-    m = 10
-    substrings = 'substrings.txt'
-    text = 'text.txt'
+#class args:
+#    m = 10
+#    substrings = 'substrings.txt'
+#    text = 'text.txt'
 
 
 if __name__ == '__main__':
-    #args = parse()
+    args = parse()
     if (not os.path.exists(args.substrings)) | (not os.path.exists(args.text)):
         print("These files don't exist!")
         exit(-2)
@@ -36,3 +35,6 @@ if __name__ == '__main__':
 
     BF = BloomFilter(args.m, text_size - line_size + 1)
     BF.fill(args.text, line_size)
+
+
+
