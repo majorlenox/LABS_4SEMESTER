@@ -9,10 +9,10 @@ allowed_chars = string.ascii_letters + string.punctuation
 def parse():
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group()
-    group.add_argument("-sn", help="Substrings number in file 'substrings.txt'", default=20, type=int)
+    group.add_argument("-sn", help="Substrings number in file 'substrings.txt'", default=10, type=int)
     group.add_argument("-ss", help="Substrings size", default=10, type=int)
-    group.add_argument("-ts", help="Text size in Bytes", default=1024, type=int)
-    parser.add_argument("-f", help="The frequency of occurrence of the substring", default=5, type=int)
+    group.add_argument("-ts", help="Text size in Bytes", default=1000, type=int)
+    parser.add_argument("-f", help="The frequency of occurrence of the substring", default=10, type=int)
     args = parser.parse_args()
     return args
 

@@ -39,7 +39,7 @@ class BloomFilter:
     @staticmethod
     def binary_write(arr, file):
         for i in range(0, len(arr), 8):
-            a = arr[i] * 128 + arr[i + 1] * 64 + arr[i + 2] * 32 + + arr[i + 3] * 16 + arr[i + 4] * 8 + arr[i + 5] * 4 \
+            a = arr[i] * 128 + arr[i + 1] * 64 + arr[i + 2] * 32 + arr[i + 3] * 16 + arr[i + 4] * 8 + arr[i + 5] * 4 \
                 + arr[i + 6] * 2 + arr[i + 7]
             file.write(bytes([a]))
 
@@ -49,7 +49,7 @@ class BloomFilter:
             r = mmh3.hash(substring, i * self.p) % (self.m * 8)
             bloom_fd.seek(int(r / 8))
             cur_byte = bloom_fd.read(1)
-            if int(cur_byte) & (1 << (r % 8)):
+            if int.from_bytes(cur_byte, "big") & (128 >> (r % 8)):
                 continue
             else:
                 bloom_fd.close()

@@ -25,7 +25,7 @@ Generates the following files:
   - -f  - Frequency of occurrence of lines from substrings.txt in text.txt. Default=5
   
 Resources:
-- Bloom filter
+- Bloom filter, mmh3
   - https://en.wikipedia.org/wiki/Bloom_filter
   - https://github.com/Lexcorp3439/bloom-filter
   - https://progi.pro/generirovanie-k-parno-nezavisimih-hesh-funkciy-3706183
