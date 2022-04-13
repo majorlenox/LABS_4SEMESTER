@@ -12,6 +12,8 @@ class BloomFilter:
         self.m = m
         self.n = n
         self.k = int((m * 8) / n * math.log(2))  # hash number
+        if self.k == 0:
+            self.k = 1
 
     def fill(self, textfile, sub_size):
         text_fd = open(textfile, 'r')
@@ -20,14 +22,16 @@ class BloomFilter:
         old_buf = ''
         buf = text_fd.read(buf_size)
         for i in range(self.n):
-            if i % buf_size - (buf_size - sub_size + 1) == 0:
-                old_buf = buf[buf_size - sub_size + 1: buf_size - 1]
+            if i % buf_size - (buf_size - sub_size) == 0:
+                old_buf = buf[buf_size - sub_size + 1: buf_size]
+                s = buf[buf_size - sub_size: buf_size - 1]
                 buf = text_fd.read(buf_size)
-            if i % buf_size - (buf_size - sub_size + 1) >= 0:
-                s = old_buf[i % (buf_size + 1) - (buf_size - sub_size + 1): sub_size - 1] + \
-                    buf[0: i % (buf_size - sub_size + 1)]
             else:
-                s = buf[i: i + sub_size]
+                if i % buf_size - (buf_size - sub_size) > 0:
+                    s = old_buf[i % (buf_size + 1) - (buf_size - sub_size + 1): sub_size - 1] + \
+                        buf[0: i % (buf_size - sub_size + 1)]
+                else:
+                    s = buf[i % buf_size: (i + sub_size) % buf_size]
             for j in range(self.k):
                 r = mmh3.hash(s, j * self.p) % (self.m * 8)
                 arr[r] = True

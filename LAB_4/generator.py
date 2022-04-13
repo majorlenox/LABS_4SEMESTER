@@ -11,7 +11,7 @@ def parse():
     group = parser.add_argument_group()
     group.add_argument("-sn", help="Substrings number in file 'substrings.txt'", default=10, type=int)
     group.add_argument("-ss", help="Substrings size", default=10, type=int)
-    group.add_argument("-ts", help="Text size in Bytes", default=1000, type=int)
+    group.add_argument("-ts", help="Text size in KBytes", default=1048576, type=int)
     parser.add_argument("-f", help="The frequency of occurrence of the substring", default=10, type=int)
     args = parser.parse_args()
     return args
@@ -36,6 +36,7 @@ def save_subs(data, filename):
 
 def save_text(txt_size, subs, freq, filename):
     block_size = len(subs[0])
+    txt_size *= 1000
     freq = freq/block_size
     r = 100
     while freq % 1 != 0:
