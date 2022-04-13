@@ -10,16 +10,10 @@ def parse():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-f", help="Output the offset of only the first occurrence", default=0, action='store_true')
     group.add_argument("-m", help="Filter Bloom size in Bytes", default=2000, type=int)
-    parser.add_argument('substrings', help='path to file with substrings', action='store', type=str)
-    parser.add_argument('text', help='path to file with text', action='store', type=str)
+    parser.add_argument('substrings', help='Path to file with substrings', action='store', type=str)
+    parser.add_argument('text', help='Path to file with text', action='store', type=str)
     args = parser.parse_args()
     return args
-
-
-# class args:
-#    m = 30
-#    substrings = 'substrings.txt'
-#    text = 'text.txt'
 
 
 if __name__ == '__main__':

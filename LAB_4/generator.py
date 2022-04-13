@@ -11,8 +11,8 @@ def parse():
     group = parser.add_argument_group()
     group.add_argument("-sn", help="Substrings number in file 'substrings.txt'", default=10, type=int)
     group.add_argument("-ss", help="Substrings size", default=10, type=int)
-    group.add_argument("-ts", help="Text size in KBytes", default=1048576, type=int)
-    parser.add_argument("-f", help="The frequency of occurrence of the substring", default=10, type=int)
+    group.add_argument("-ts", help="Text size in KBytes", default=1, type=int)
+    parser.add_argument("-f", help="The frequency of occurrence of the substring", default=5, type=int)
     args = parser.parse_args()
     return args
 
