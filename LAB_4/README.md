@@ -45,10 +45,10 @@ test
 -
 Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
 
-65 number of substrings
-75 size of each substring
-2 MB text
-5% frequency
+65 number of substrings, 
+75 size of each substring,
+2 MB text,
+5% frequency,
 2 KB Bloom Filter
 
 $ python3 generator.py -sn 65 -ss 75 -ts 2048 -f 5
