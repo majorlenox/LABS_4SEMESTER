@@ -1,20 +1,19 @@
-def make_block(s):
-    x = [0] * 16
-    s_length = len(s)
-    for i in range(0, int(s_length/4) * 4, 4):
-        x[int(i/4)] = ord(s[i])*0x01000000 + ord(s[i + 1])*0x00010000 + ord(s[i + 2])*0x00000100 + ord(s[i + 3])
-    t = 0x01000000
-    k = s_length - int(s_length/4) * 4
-    j = 0
-    while k != 0:
-        x[int(s_length/4)] += ord(s[int(s_length/4) + j]) * t
-        t = t >> 8
-        k -= 1
-        j += 1
-    x[int(s_length / 4)] += 1 * t << 7                  # msg + 1000...000
-    return x
+import struct
+import hashlib
 
-to_hash = 'dasdaadsdces'
+def make_block(s):
+    if type(s) == str:
+        s = bytearray(s, 'utf-8')
+    ml = len(s) * 8
+    s += b"\x80"
+    s += b"\x00" * (56 - len(s) % 64)
+    s += struct.pack("<Q", ml)
+    return s
+
+x0b = struct.pack("<c", bytes([3]))
+print(x0b)
+#print(struct.pack('<L', 1233333333))
+to_hash = 'wasdwasdwasd'
 x = make_block(to_hash)
-for i in range(16):
-    print(str(x[i]) + " = " + format(x[i], '032b'))
+for i in range(0, len(to_hash), 64):
+    print(list(struct.unpack("<16I", x[i: i + 64])))

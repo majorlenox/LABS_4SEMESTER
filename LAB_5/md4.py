@@ -1,3 +1,6 @@
+import struct
+
+
 class MD4:
     width = 32
     mask = 0xFFFFFFFF
@@ -23,6 +26,15 @@ class MD4:
     @staticmethod
     def STEP(func, a, b, c, d, k, s, x):
         return MD4.lrot(a + func(b, c, d) + x[k], s)
+
+    def make_block(self, s):
+        if type(s) == str:
+            s = bytearray(s, 'utf-8')
+        ml = len(s) * 8
+        s += b"\x80"
+        s += b"\x00" * (56 - len(s) % 64)
+        s += struct.pack("<Q", ml)
+        return s
 
     def md4_hash(self, x):
         reg = [] * 4  # reg[0] = A, reg[1] = B, reg[2] = C, reg[3] = D
