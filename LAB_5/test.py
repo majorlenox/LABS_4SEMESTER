@@ -1,5 +1,4 @@
 import struct
-import hashlib
 
 from md4 import MD4
 

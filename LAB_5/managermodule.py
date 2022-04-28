@@ -3,12 +3,12 @@ from multiprocessing import Process
 
 from md4 import MD4
 
-NUMBER_OF_PROCESSES = 1
+NUMBER_OF_PROCESSES = 4
 
 md = MD4()
 
 
-def inner_loop(x0):
+def inner_loop(x0, input_md4):
     for x1 in range(0xFFFFFFFF + 1):
         s = x0 + struct.pack("<L", x1)
         s_len = get_length(s)
@@ -22,7 +22,8 @@ def inner_loop(x0):
             s = b'\x80' + b'\x00' * 7
         s += b'\x00' * (56 - len(s))
         s += struct.pack("<L", s_len) + b'\x00' * 4
-        print(md.md4_hash(s))
+        if md.md4_optimized_compare(s, input_md4) == 1:
+            print("preimage founded: " + s[0:s_len].hex())
 
 
 def get_length(s):
@@ -38,7 +39,7 @@ def work(input_md4):
     # outer loop
     for x0 in range(0xFFFFFFFF + 1):
         x0b = struct.pack("<L", x0)
-        proc = Process(target=inner_loop, args=tuple([x0b]))
+        proc = Process(target=inner_loop, args=(x0b, input_md4))
         processes[x0 % NUMBER_OF_PROCESSES] = proc
         proc.start()
         if x0 % NUMBER_OF_PROCESSES == NUMBER_OF_PROCESSES - 1:
