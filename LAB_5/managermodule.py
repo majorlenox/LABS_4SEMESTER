@@ -13,12 +13,8 @@ def inner_loop(s, input_md4):
     input_md4[2] = (int(input_md4[2], 16) - 0x98BADCFE) & MD4.mask
     input_md4[3] = (int(input_md4[3], 16) - 0x10325476) & MD4.mask
     # s = x1
-    s_len = get_length(s)
-    if len(bin(s[s_len - 1])) - 3 != -1:
-        mask_1 = pow(2, len(bin(s[s_len - 1])) - 3)
-        s = s[:s_len - 1] + bytes([s[s_len - 1] | mask_1]) + s[s_len:]
-    else:
-        s += b'\x80'
+    s_len = MD4.get_length(s)
+    s += b'\x80'
     s += b'\x00' * (52 - len(s))
     s += struct.pack("<L", s_len) + b'\x00' * 4  # s = x1 + '100000' + len + '4 bytes of 0', len(s) = 120
     s1 = b'\x00\x00\x00\x00' + s
@@ -49,33 +45,48 @@ def inner_loop_0(input_md4):  # x1 = 00000000 (length changeable)
     x = [0] * 16
     x1 = [0x5A827999] * 16
     x2 = [0x6ED9EBA1] * 16
-    for x[0] in range(0xFFFFFFFF + 1):
-        k = x[0]
-        i = 32
-        while not (k & 1):
-            k = k >> 1
-            i -= 1
-        if i == 32:
-            x[1] = 1
+    x[0] = 128
+    x1[0] += 128
+    x2[0] += 128
+    if MD4.hash_compare(input_md4, x, x1, x2):
+        print("preimage founded: " + hex(x[0]))
+    for c in range(1, 0xFFFFFFFF + 1, 1):
+        if c < 0xFF:
+            r = 8
+            x[0] = 0x100 * 128
+            x1[0] = (0x100 * 128 + 0x5A827999) & MD4.mask
+            x2[0] = (0x100 * 128 + 0x6ED9EBA1) & MD4.mask
         else:
-            x[0] |= 1 <<
-
+            if c < 0xFFFF:
+                r = 16
+                x[0] = 0x10000 * 128
+                x1[0] = (0x10000 * 128 + 0x5A827999) & MD4.mask
+                x2[0] = (0x10000 * 128 + 0x6ED9EBA1) & MD4.mask
+            else:
+                if c < 0xFFFFFF:
+                    r = 24
+                    x[0] = 0x1000000 * 128
+                    x1[0] = (0x1000000 * 128 + 0x5A827999) & MD4.mask
+                    x2[0] = (0x1000000 * 128 + 0x6ED9EBA1) & MD4.mask
+                else:
+                    r = 32
+                    x[1] = 128
+                    x1[1] = 0x5A827999 + 128
+                    x2[1] = 0x6ED9EBA1 + 128
+        x[0] += c
+        x1[0] += c
+        x2[0] += c
+        x[14] = r
+        x1[14] = 0x5A827999 + r
+        x2[14] = 0x6ED9EBA1 + r
         if MD4.hash_compare(input_md4, x, x1, x2):
             print("preimage founded: " + hex(x[0]))
-
-
-def get_length(s):
-    s = struct.unpack("<4c", s)
-    k = 3
-    while (k >= 0) & (s[k] == b"\x00"):
-        k -= 1
-    return k + 1
 
 
 def work(input_md4):
     processes = [Process()] * NUMBER_OF_PROCESSES
     # outer loop
-    proc = Process(target=inner_loop_0, args=('\x00\x00\x00\x00', input_md4))
+    proc = Process(target=inner_loop_0, args=[input_md4])
     processes[0] = proc
     proc.start()
     for x1 in range(1, 0xFFFFFFFF + 1):

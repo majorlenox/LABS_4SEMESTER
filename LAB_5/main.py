@@ -17,7 +17,7 @@ def parse():
 
 class args:
     f = 'md4.txt'
-    hash = '97d93003d28cabc681f37462bf73e6cd'
+    hash = '1c23606920be0fd22869926b6c44f8fc'
 
 
 if __name__ == '__main__':

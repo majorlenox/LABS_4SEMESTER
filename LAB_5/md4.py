@@ -9,27 +9,25 @@ class MD4:
     def make_block(s):
         if type(s) == str:
             s = bytearray(s, 'utf-8')
-        s1 = s
-        s += b"\x80"
+        if s == b'':
+            s = b"\x80"
+            l = 0
+        else:
+            l = MD4.get_length(s)
+            s += b"\x80"
         s += b'\x00' * (56 - len(s) % 64)
-        s += struct.pack("<L", MD4.get_length(s1) & MD4.mask) + struct.pack("<L", MD4.get_length(s1) // MD4.mask)
+        s += struct.pack("<L", l & MD4.mask) + struct.pack("<L", l // MD4.mask)
         return s
 
     @staticmethod
     def get_length(s):
         s = struct.unpack("<" + str(len(s)) + "c", s)
         k = len(s) - 1
-        i = k * 8
         while (k >= 0) & (s[k] == b"\x00"):
             k -= 1
         if k == -1:
             return 0
-        s = int.from_bytes(s[k], byteorder='little')
-        r = 7
-        while (r > 0) & (s > 128):
-            r -= 1
-            s = s << 1
-        return r + 1 + i
+        return (k + 1) * 8
 
     @staticmethod
     def F(x1, x2, x3):
@@ -136,7 +134,7 @@ class MD4:
         reg[1] = MD4.STEP(MD4.G, reg[1], reg[2], reg[3], reg[0], 15, 13, x1)
         if reg[1] != expected[1]:
             return 0
-        reg[0] = MD4.STEP(MD4.H, reg[0], reg[1], reg[2], reg[3], 0, 3, x2) # useless ???
+        reg[0] = MD4.STEP(MD4.H, reg[0], reg[1], reg[2], reg[3], 0, 3, x2)  # useless ???
         if reg[0] != expected[0]:
             return 0
         # round 3
