@@ -4,8 +4,9 @@ The program implements a search for the preimage by its hash(MD4), taking into a
 (it is <= 8 bytes), which makes it possible to reduce the duration of the check due to the "meeting in the middle".
 
 Usage:
- main.py - Accepts a hash(MD4) and searches for a prototype using it
- hash.py - You can use it to generate a hash(MD4), (only manually!)
+-
+ - main.py - Accepts a hash(MD4) and searches for a prototype using it
+ - hash.py - You can use it to generate a hash(MD4), (only manually!)
 
 
 test: 
