@@ -1,5 +1,5 @@
 import struct
-from multiprocessing import Process, Pool
+from multiprocessing import Pool
 
 from md4 import MD4
 
