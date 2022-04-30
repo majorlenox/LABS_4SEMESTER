@@ -22,12 +22,7 @@ class MD4:
     @staticmethod
     def get_length(s):
         s = struct.unpack("<" + str(len(s)) + "c", s)
-        k = len(s) - 1
-        while (k >= 0) & (s[k] == b"\x00"):
-            k -= 1
-        if k == -1:
-            return 0
-        return (k + 1) * 8
+        return len(s)*8
 
     @staticmethod
     def F(x1, x2, x3):
@@ -60,7 +55,7 @@ class MD4:
         return (MD4.rrot(a, s) - x[k] - func(b, c, d)) & MD4.mask
 
     @staticmethod
-    def STEP_REV1(func, a, b, c, d, k, s, x):
+    def STEP_REV1(a, k, s, x):
         return (MD4.rrot(a, s) - x[k]) & MD4.mask
 
     @staticmethod
@@ -116,6 +111,10 @@ class MD4:
     def hash_optimized_compare(input_hash, x, x1, x2, expected):
         reg = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476]  # reg[0] = A, reg[1] = B, reg[2] = C, reg[3] = D
 
+        expected[0] -= x[0]
+        expected[1] -= expected[1] - MD4.G(expected[4], expected[3], expected[0])
+        expected[2] -= MD4.G(expected[3], expected[0], expected[1])
+
         # round 1
         s = [3, 7, 11, 19]
         for j in range(16):
@@ -123,26 +122,28 @@ class MD4:
                                       reg[(3 + 3 * j) % 4], j, s[j % 4], x)
         # round 2
         s = [3, 5, 9, 13]
-        for j in range(0, 14):
+        for j in range(0, 11):
             reg[3 * j % 4] = MD4.STEP(MD4.G, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], (j % 4) * 4 + j // 4, s[j % 4], x1)
-        if reg[3] != expected[3]:
-            return 0
-        reg[2] = MD4.STEP(MD4.G, reg[2], reg[3], reg[0], reg[1], 11, 9, x1)
         if reg[2] != expected[2]:
             return 0
-        reg[1] = MD4.STEP(MD4.G, reg[1], reg[2], reg[3], reg[0], 15, 13, x1)
+        reg[1] = MD4.STEP(MD4.G, reg[1], reg[2], reg[3], reg[0], 14, 13, x1)
         if reg[1] != expected[1]:
             return 0
-        reg[0] = MD4.STEP(MD4.H, reg[0], reg[1], reg[2], reg[3], 0, 3, x2)  # useless ???
+        reg[0] = MD4.STEP(MD4.G, reg[0], reg[1], reg[2], reg[3], 3, 3, x1)
         if reg[0] != expected[0]:
             return 0
+        for j in range(13, 16):
+            reg[3 * j % 4] = MD4.STEP(MD4.G, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
+                                      reg[(3 + 3 * j) % 4], (j % 4) * 4 + j // 4, s[j % 4], x1)
+
         # round 3
         s = [3, 9, 11, 15]
         r = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
         for j in range(1, 16, 1):
             reg[3 * j % 4] = MD4.STEP(MD4.H, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], r[j], s[j % 4], x2)
+
         if reg == input_hash:
             return 1
         return 0
@@ -151,23 +152,23 @@ class MD4:
     def hash_compare(input_hash, x, x1, x2):
         reg = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476]  # reg[0] = A, reg[1] = B, reg[2] = C, reg[3] = D
 
-        # round 1
+            # round 1
         s = [3, 7, 11, 19]
         for j in range(16):
-            reg[3 * j % 4] = MD4.STEP(MD4.F, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
-                                      reg[(3 + 3 * j) % 4], j, s[j % 4], x)
-        # round 2
+            reg[3 * j % 4] = MD4.STEP(MD4.F, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4], reg[(3 + 3 * j) % 4], j, s[j % 4], x)
+
+            # round 2
         s = [3, 5, 9, 13]
-        for j in range(0, 16):
+        for j in range(16):
             reg[3 * j % 4] = MD4.STEP(MD4.G, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], (j % 4) * 4 + j // 4, s[j % 4], x1)
-
-        # round 3
+            # round 3
         s = [3, 9, 11, 15]
         r = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
-        for j in range(0, 16):
+        for j in range(16):
             reg[3 * j % 4] = MD4.STEP(MD4.H, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], r[j], s[j % 4], x2)
+
         if reg == input_hash:
             return 1
         return 0
@@ -177,12 +178,13 @@ class MD4:
         s = [3, 9, 11, 15]
         r = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
         # rev round 3
-        for j in range(15, 0, -1):
+        for j in range(15, -1, -1):
             reg[3 * j % 4] = MD4.STEP_REV(MD4.H, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                           reg[(3 + 3 * j) % 4], r[j], s[j % 4], x2)
+        reg.append(reg[2])  # save C
+
         # rev round 2
-        reg[1] = MD4.STEP_REV(MD4.G, reg[1], reg[2], reg[3], reg[0], 15, 13, x1)
-        reg[2] = MD4.STEP_REV(MD4.G, reg[2], reg[3], reg[0], reg[1], 11, 9, x1)
-        reg[3] = MD4.STEP_REV(MD4.G, reg[3], reg[0], reg[1], reg[2], 7, 5, x1)
+        reg[1] = MD4.STEP_REV1(reg[1], 15, 13, x1)
+        reg[2] = MD4.STEP_REV1(reg[2], 11, 9, x1)
 
         return reg
