@@ -22,7 +22,7 @@ class MD4:
     @staticmethod
     def get_length(s):
         s = struct.unpack("<" + str(len(s)) + "c", s)
-        return len(s)*8
+        return len(s) * 8
 
     @staticmethod
     def F(x1, x2, x3):
@@ -38,12 +38,12 @@ class MD4:
 
     @staticmethod
     def lrot(x1, s):
-        l, r = (x1 << s) & MD4.mask, x1 >> (MD4.width - s)
+        l, r = (x1 << s) & MD4.mask, (x1 >> (MD4.width - s)) & MD4.mask
         return l | r
 
     @staticmethod
     def rrot(x1, s):
-        l, r = x1 >> s, (x1 << (MD4.width - s)) & MD4.mask
+        l, r = (x1 >> s) & MD4.mask, (x1 << (MD4.width - s)) & MD4.mask
         return l | r
 
     @staticmethod
@@ -111,9 +111,9 @@ class MD4:
     def hash_optimized_compare(input_hash, x, x1, x2, expected):
         reg = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476]  # reg[0] = A, reg[1] = B, reg[2] = C, reg[3] = D
 
-        expected[0] -= x[0]
-        expected[1] -= expected[1] - MD4.G(expected[4], expected[3], expected[0])
-        expected[2] -= MD4.G(expected[3], expected[0], expected[1])
+        exp_a = (expected[0] - x[0]) & MD4.mask
+        exp_b = (expected[1] - MD4.G(expected[4], expected[3], exp_a)) & MD4.mask
+        exp_c = (expected[2] - MD4.G(expected[3], exp_a, exp_b)) & MD4.mask
 
         # round 1
         s = [3, 7, 11, 19]
@@ -125,13 +125,13 @@ class MD4:
         for j in range(0, 11):
             reg[3 * j % 4] = MD4.STEP(MD4.G, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], (j % 4) * 4 + j // 4, s[j % 4], x1)
-        if reg[2] != expected[2]:
+        if reg[2] != exp_c:
             return 0
         reg[1] = MD4.STEP(MD4.G, reg[1], reg[2], reg[3], reg[0], 14, 13, x1)
-        if reg[1] != expected[1]:
+        if reg[1] != exp_b:
             return 0
         reg[0] = MD4.STEP(MD4.G, reg[0], reg[1], reg[2], reg[3], 3, 3, x1)
-        if reg[0] != expected[0]:
+        if reg[0] != exp_a:
             return 0
         for j in range(13, 16):
             reg[3 * j % 4] = MD4.STEP(MD4.G, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
@@ -140,7 +140,7 @@ class MD4:
         # round 3
         s = [3, 9, 11, 15]
         r = [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
-        for j in range(1, 16, 1):
+        for j in range(16):
             reg[3 * j % 4] = MD4.STEP(MD4.H, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
                                       reg[(3 + 3 * j) % 4], r[j], s[j % 4], x2)
 
@@ -150,12 +150,16 @@ class MD4:
 
     @staticmethod
     def hash_compare(input_hash, x, x1, x2):
+
+        input_hash = MD4.read_hash(input_hash)
+
         reg = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476]  # reg[0] = A, reg[1] = B, reg[2] = C, reg[3] = D
 
-            # round 1
+        # round 1
         s = [3, 7, 11, 19]
         for j in range(16):
-            reg[3 * j % 4] = MD4.STEP(MD4.F, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4], reg[(3 + 3 * j) % 4], j, s[j % 4], x)
+            reg[3 * j % 4] = MD4.STEP(MD4.F, reg[3 * j % 4], reg[(1 + 3 * j) % 4], reg[(2 + 3 * j) % 4],
+                                      reg[(3 + 3 * j) % 4], j, s[j % 4], x)
 
             # round 2
         s = [3, 5, 9, 13]
@@ -172,6 +176,20 @@ class MD4:
         if reg == input_hash:
             return 1
         return 0
+
+    @staticmethod
+    def read_hash(input_md4):
+        input_md4 = [input_md4[i: i + 8] for i in range(0, 32, 8)]
+        for i in range(4):
+            input_md4[i] = [input_md4[i][0:2], input_md4[i][2:4], input_md4[i][4:6], input_md4[i][6:8]]
+        for j in range(4):
+            input_md4[j] = int(input_md4[j][3], 16) * 0x1000000 + int(input_md4[j][2], 16) * 0x10000 + \
+                           int(input_md4[j][1], 16) * 0x100 + int(input_md4[j][0], 16)
+        input_md4[0] = (input_md4[0] - 0x67452301) & MD4.mask
+        input_md4[1] = (input_md4[1] - 0xEFCDAB89) & MD4.mask
+        input_md4[2] = (input_md4[2] - 0x98BADCFE) & MD4.mask
+        input_md4[3] = (input_md4[3] - 0x10325476) & MD4.mask
+        return input_md4
 
     @staticmethod
     def reverse(reg, x1, x2):

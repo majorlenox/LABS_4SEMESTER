@@ -15,13 +15,8 @@ def parse():
     return parser.parse_args()
 
 
-class args:
-    f = 'md4.txt'
-    hash = '6e2d946b34531b49bd177b49c538ee64'
-
-
 if __name__ == '__main__':
-    # args = parse()
+    args = parse()
     if args.f is not None:
         if not os.path.exists(args.f):
             print("These file doesn't exist!")
@@ -29,9 +24,16 @@ if __name__ == '__main__':
         with open(args.f, 'r') as f_hash:
             input_md4 = f_hash.readline().removesuffix('\n')
     else:
+        if args.hash is None:
+            print("Use the -f flag to specify the path to the MD4 hash file, or use MD4 as argument to main.py")
+            exit(1)
         input_md4 = args.hash
     if len(input_md4) != 32 | (not set(input_md4).issubset(hex_symbols)):
-        print("The string from file " + args.f + " is not an md4 hash!")
+        if args.f is not None:
+            print("The string from file " + str(args.f) + " is not an md4 hash!")
+        else:
+            print("This string " + str(args.hash) + " is not an md4 hash!")
+        exit(1)
     t = time.time_ns()
     managermodule.work(input_md4)
     t = time.time_ns() - t
