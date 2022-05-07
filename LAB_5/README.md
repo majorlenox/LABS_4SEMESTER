@@ -20,6 +20,14 @@ test:
 > 
 > Time: 3.846397351 seconds
 
+> $ python3 main.py 87b223887eaac384c3850f7e7c9d16f5
+>
+> preimage founded: b'\x06\x11\x00\x00\x04\x00\x00\x00'
+> 
+> Time: 0.343149338 seconds
+
+
+
 - Resources:
   - https://github.com/hashcat/hashcat/blob/master/OpenCL/m01000_a3-optimized.cl
   - https://ru.wikipedia.org/wiki/MD4
