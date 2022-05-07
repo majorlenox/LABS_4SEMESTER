@@ -20,6 +20,9 @@ test:
 > 
 > Time: 3.846397351 seconds
 
+- preimage =  b'\x06\x11\x00\x00\x04\x00\x00\x00'
+- image    = 87b223887eaac384c3850f7e7c9d16f5
+
 > $ python3 main.py 87b223887eaac384c3850f7e7c9d16f5
 >
 > preimage founded: b'\x06\x11\x00\x00\x04\x00\x00\x00'
