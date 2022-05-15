@@ -4,42 +4,80 @@ RAND_DIGITS = 2
 RAND_RANGE = 100
 
 
+def multiply_and_round(a):
+    return round(a * RAND_RANGE, RAND_DIGITS)
+
+
 def generate_matrices(n, mn, m):
-    matrix_a = [[0 for i in range(mn)] for j in range(n)]
-    matrix_b = [[0 for i in range(m)] for j in range(mn)]
+    matrix_a = np.zeros((n, mn))
+    matrix_b = np.zeros((mn, m))
     for i in range(n):
-        for j in range(mn):
-            matrix_a[i][j] = round(np.random.rand() * RAND_RANGE, RAND_DIGITS)
-            for k in range(m):
-                matrix_b[j][k] = round(np.random.rand() * RAND_RANGE, RAND_DIGITS)
+        matrix_a[i, :] = list(map(multiply_and_round, np.random.rand(mn)))
+    for i in range(mn):
+        matrix_b[i, :] = list(map(multiply_and_round, np.random.rand(m)))
     return matrix_a, matrix_b
 
 
 def load_matrices(filename):
-    matrix_a = []
-    matrix_b = []
     with open(filename, 'r') as f_matrices:
         f_matrices.readline()
         line = f_matrices.readline().split(" ")
+        row = []
+        for element in line:
+            row.append(float(element))
+        matrix_a = np.array(row)
+        line = f_matrices.readline().split(" ")
         while line[0] != "Matrix":
-            matrix_a.append([])
+            row = []
             for element in line:
-                matrix_a[len(matrix_a) - 1].append(float(element))
+                row.append(float(element))
+            matrix_a = np.vstack([matrix_a, np.array(row)])
             line = f_matrices.readline().split(" ")
             if line == ['']:
                 print("Incorrect matrices file: " + filename + "!")
-                return -1, -1
+                return None, None
+        line = f_matrices.readline().split(" ")
+        row = []
+        for element in line:
+            row.append(float(element))
+        matrix_b = np.array(row)
         line = f_matrices.readline().split(" ")
         while line != [""]:
-            matrix_b.append([])
+            row = []
             for element in line:
-                matrix_b[len(matrix_b) - 1].append(float(element))
+                row.append(float(element))
+            matrix_b = np.vstack([matrix_b, np.array(row)])
             line = f_matrices.readline().split(" ")
     return matrix_a, matrix_b
 
 
 def show_matrix(matrix):
-    print(np.matrix(matrix))
+    print(matrix)
+
+
+def multiply_matrices(matrix_a, matrix_b):
+    n, mn1 = matrix_a.shape
+    mn2, m = matrix_b.shape
+    if mn1 != mn2:
+        print("Can't multiply matrices with incorrect sizes!")
+        return -1
+    matrix_c = np.zeros((n, m))
+    for i in range(n):
+        for j in range(m):
+            for k in range(mn1):
+                matrix_c[i, j] += matrix_a[i, k] * matrix_b[k, j]
+    return matrix_c
+
+
+def compare_three_matrices(mx1, mx2, mx3):
+    return (mx1 == mx2).all() & (mx2 == mx3).all()
+
+
+def save_result_matrix(matrix_c, filename):
+    with open(filename, 'w') as f_matrices:
+        f_matrices.write("Matrix C:\n")
+        for row in matrix_c:
+            f_matrices.write(' '.join([str(a) for a in row]) + '\n')
 
 
 def save_matrices(matrix_a, matrix_b, filename):
