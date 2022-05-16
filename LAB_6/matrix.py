@@ -3,6 +3,9 @@ import numpy as np
 RAND_DIGITS = 2
 RAND_RANGE = 100
 
+RTOL = 1e-05    # setting the absolute and relative tolerance
+ATOL = 1e-08
+
 
 def multiply_and_round(a):
     return round(a * RAND_RANGE, RAND_DIGITS)
@@ -70,7 +73,7 @@ def multiply_matrices(matrix_a, matrix_b):
 
 
 def compare_three_matrices(mx1, mx2, mx3):
-    return (mx1 == mx2).all() & (mx2 == mx3).all()
+    return np.allclose(mx1, mx2, RTOL, ATOL) & np.allclose(mx2, mx3, RTOL, ATOL)
 
 
 def save_result_matrix(matrix_c, filename):

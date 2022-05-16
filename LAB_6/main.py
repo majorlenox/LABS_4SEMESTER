@@ -3,6 +3,7 @@ import os
 import time
 
 import matrix
+import strassen
 
 DEFAULT_FILENAME = './matrices.txt'
 
@@ -17,15 +18,17 @@ def parse():
                         action='store', type=int)
     group2.add_argument('-m', help='The number of columns in matrix 2 to generate', action='store', type=int)
     group2.add_argument('-s', help='Will the generated matrices be saved', action='store_true', default=False)
+    group2.add_argument('-d', help='Display matrices A,B,C to stdout', action='store_true', default=False)
     return parser.parse_args()
 
 
 class args:
-    f = None
-    n = 3
-    mn = 3
-    m = 3
-    s = True
+    f = ""
+    n = 50
+    mn = 50
+    m = 50
+    s = False
+    d = False
 
 
 if __name__ == '__main__':
@@ -49,27 +52,32 @@ if __name__ == '__main__':
         if args.s:
             matrix.save_matrices(matrix_a, matrix_b, DEFAULT_FILENAME)
             print("A file with matrices was created in ./matrix.txt")
-    print("Matrix A:")
-    matrix.show_matrix(matrix_a)
-    print("Matrix B:")
-    matrix.show_matrix(matrix_b)
     t = time.time_ns()
     matrix_1 = matrix.multiply_matrices(matrix_a, matrix_b)
-    print("Result matrix C: ")
-    matrix.show_matrix(matrix_1)
     #matrix.save_result_matrix(matrix_1, "./result_trivial.txt")
     t = time.time_ns() - t
+    if args.d:
+        print("Matrix A:")
+        matrix.show_matrix(matrix_a)
+        print("Matrix B:")
+        matrix.show_matrix(matrix_b)
+        print("Result matrix C: ")
+        matrix.show_matrix(matrix_1)
     print('Trivial multiplication: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
-    # managermodule.(matrix_a, matrix_b)
+    matrix_2 = strassen.work(matrix_a, matrix_b)
     t = time.time_ns() - t
+    if args.d:
+        matrix.show_matrix(matrix_2)
     print('Strassen algorithm: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
     # managermodule.(matrix_a, matrix_b)
     t = time.time_ns() - t
+    if args.d:
+        matrix.show_matrix(matrix_2)
     print('Strassen algorithm on multiprocessing: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     #matrix.compare_three(m)
-    if matrix.compare_three_matrices(matrix_1, matrix_1, matrix_1):
+    if matrix.compare_three_matrices(matrix_1, matrix_2, matrix_1):
         print("Matrices are equal")
     else:
         print("Matrices aren't equal")

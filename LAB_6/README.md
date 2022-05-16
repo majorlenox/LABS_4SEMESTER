@@ -43,4 +43,4 @@ test:
 - Resources:
   - https://en.wikipedia.org/wiki/Strassen_algorithm
   - https://matrixcalc.org
-  - 
+  - https://cristianbastidas.com/my-blog/en/algorithms/python/tutorial/wiki/2021/10/13/strassen.html
