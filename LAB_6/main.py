@@ -21,18 +21,18 @@ def parse():
     group2.add_argument('-d', help='Display matrices A,B,C to stdout', action='store_true', default=False)
     return parser.parse_args()
 
-
+"""
 class args:
     f = ""
-    n = 1000
-    mn = 1000
-    m = 1000
+    n = 50
+    mn = 44
+    m = 23
     s = False
     d = False
-
+"""
 
 if __name__ == '__main__':
-    #args = parse()
+    args = parse()
     if args.f != "":
         if args.f is None:
             args.f = DEFAULT_FILENAME
@@ -54,7 +54,6 @@ if __name__ == '__main__':
             print("A file with matrices was created in ./matrix.txt")
     t = time.time_ns()
     matrix_1 = matrix.multiply_matrices(matrix_a, matrix_b)
-    #matrix.save_result_matrix(matrix_1, "./result_trivial.txt")
     t = time.time_ns() - t
     if args.d:
         print("Matrix A:")
@@ -65,18 +64,18 @@ if __name__ == '__main__':
         matrix.show_matrix(matrix_1)
     print('Trivial multiplication: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
-    matrix_2 = strassen.work_np(matrix_a, matrix_b)
+    matrix_2 = strassen.work(matrix_a, matrix_b, 2)
     t = time.time_ns() - t
     if args.d:
         matrix.show_matrix(matrix_2)
     print('Strassen algorithm: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
+    matrix_3 = strassen.work(matrix_a, matrix_b, 3)
     t = time.time_ns() - t
     if args.d:
-        matrix.show_matrix(matrix_2)
+        matrix.show_matrix(matrix_3)
     print('Strassen algorithm on multiprocessing: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
-    #matrix.compare_three(m)
-    if matrix.compare_three_matrices(matrix_1, matrix_2, matrix_2):
+    if matrix.compare_three_matrices(matrix_1, matrix_2, matrix_3):
         print("Matrices are equal")
     else:
         print("Matrices aren't equal")

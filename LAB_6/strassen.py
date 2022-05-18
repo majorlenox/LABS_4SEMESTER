@@ -1,3 +1,5 @@
+from multiprocessing import Pool
+
 import numpy as np
 
 TRIVIAL_MULTIPLICATION_BOUND = 32
@@ -62,17 +64,6 @@ def multiply_np(A, B):
     C[k:, k:] = D + D_2 + V_2 - H_2
 
     return C
-
-
-def work_np(A, B):
-    prev_A = A.shape
-    prev_B = B.shape
-    A = add_zero_lines_np(A)
-    B = add_zero_lines_np(B)
-    C = multiply_np(A, B)
-    C = remove_zero_lines_np(C, prev_A[0], prev_B[1])
-    return C
-
 
 # np array realization END
 
@@ -166,14 +157,65 @@ def multiply(A, B):
     return C
 
 
-def work(A, B):
-    A = A.tolist()
-    B = B.tolist()
-    prev_A = len(A)
-    prev_B = len(B[0])
-    A = add_zero_lines(A)
-    B = add_zero_lines(B)
-    C = multiply(A, B)
-    C = remove_zero_lines(C, prev_A, prev_B)
-    C = np.matrix(C)
+#
+
+def multiply_multiprocess_np(A, B):
+    n = A.shape[0]
+    C = np.zeros((n, n))
+    if n == 1:
+        C[0, 0] = A[0, 0] * B[0, 0]
+        return C
+    if n < TRIVIAL_MULTIPLICATION_BOUND:
+        A = A.tolist()
+        B = B.tolist()
+        C = [[0] * n for i in range(n)]
+        for i in range(n):
+            for j in range(n):
+                for k in range(n):
+                    C[i][j] += A[i][k] * B[k][j]
+        return np.matrix(C)
+
+    k = n // 2
+
+    A_11, A_12, A_21, A_22 = A[:k, :k], A[:k, k:], A[k:, :k], A[k:, k:]
+    B_11, B_12, B_21, B_22 = B[:k, :k], B[:k, k:], B[k:, :k], B[k:, k:]
+
+    tasks = ((A_11 + A_22, B_11 + B_22), (A_12 - A_22, B_21 + B_22), (A_21 - A_11, B_11 + B_12), (A_11 + A_12, B_22),
+             (A_21 + A_22, B_11), (A_22, B_21 - B_11), (A_11, B_12 - B_22))
+
+    pool = Pool(processes=7)
+    p = pool.starmap(multiply_np, [k for k in tasks])
+    pool.close()
+
+    C[:k, :k] = p[0] + p[1] + p[5] - p[3]
+    C[:k, k:] = p[6] + p[3]
+    C[k:, :k] = p[5] + p[4]
+    C[k:, k:] = p[0] + p[2] + p[6] - p[4]
+
     return C
+
+
+def work(A, B, m):
+    if m == 1:      # list implementation, one process
+        A = A.tolist()
+        B = B.tolist()
+        prev_A = len(A)
+        prev_B = len(B[0])
+        A = add_zero_lines(A)
+        B = add_zero_lines(B)
+        C = multiply(A, B)
+        C = remove_zero_lines(C, prev_A, prev_B)
+        C = np.matrix(C)
+        return C
+    prev_A = A.shape
+    prev_B = B.shape
+    A = add_zero_lines_np(A)
+    B = add_zero_lines_np(B)
+    if m == 2:
+        C = multiply_np(A, B)
+    else:
+        C = multiply_multiprocess_np(A, B)
+    C = remove_zero_lines_np(C, prev_A[0], prev_B[1])
+    return C
+
+

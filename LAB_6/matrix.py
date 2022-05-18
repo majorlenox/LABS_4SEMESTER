@@ -80,7 +80,7 @@ def multiply_matrices(matrix_a, matrix_b):          # faster
         return -1
     matrix_a = matrix_a.tolist()
     matrix_b = matrix_b.tolist()
-    C = [[0]*n for i in range(m)]
+    C = [[0]*m for i in range(n)]
     for i in range(n):
         for j in range(m):
             for k in range(mn1):
