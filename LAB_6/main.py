@@ -24,9 +24,9 @@ def parse():
 
 class args:
     f = ""
-    n = 50
-    mn = 50
-    m = 50
+    n = 1000
+    mn = 1000
+    m = 1000
     s = False
     d = False
 
@@ -65,19 +65,18 @@ if __name__ == '__main__':
         matrix.show_matrix(matrix_1)
     print('Trivial multiplication: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
-    matrix_2 = strassen.work(matrix_a, matrix_b)
+    matrix_2 = strassen.work_np(matrix_a, matrix_b)
     t = time.time_ns() - t
     if args.d:
         matrix.show_matrix(matrix_2)
     print('Strassen algorithm: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     t = time.time_ns()
-    # managermodule.(matrix_a, matrix_b)
     t = time.time_ns() - t
     if args.d:
         matrix.show_matrix(matrix_2)
     print('Strassen algorithm on multiprocessing: %0.9f' % (float(t / 1000000000.0)) + ' seconds')
     #matrix.compare_three(m)
-    if matrix.compare_three_matrices(matrix_1, matrix_2, matrix_1):
+    if matrix.compare_three_matrices(matrix_1, matrix_2, matrix_2):
         print("Matrices are equal")
     else:
         print("Matrices aren't equal")

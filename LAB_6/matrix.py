@@ -58,7 +58,7 @@ def show_matrix(matrix):
     print(matrix)
 
 
-def multiply_matrices(matrix_a, matrix_b):
+def multiply_matrices_np(matrix_a, matrix_b):       # too slow!!!
     n, mn1 = matrix_a.shape
     mn2, m = matrix_b.shape
     if mn1 != mn2:
@@ -70,6 +70,22 @@ def multiply_matrices(matrix_a, matrix_b):
             for k in range(mn1):
                 matrix_c[i, j] += matrix_a[i, k] * matrix_b[k, j]
     return matrix_c
+
+
+def multiply_matrices(matrix_a, matrix_b):          # faster
+    n, mn1 = matrix_a.shape
+    mn2, m = matrix_b.shape
+    if mn1 != mn2:
+        print("Can't multiply matrices with incorrect sizes!")
+        return -1
+    matrix_a = matrix_a.tolist()
+    matrix_b = matrix_b.tolist()
+    C = [[0]*n for i in range(m)]
+    for i in range(n):
+        for j in range(m):
+            for k in range(mn1):
+                C[i][j] += matrix_a[i][k] * matrix_b[k][j]
+    return np.matrix(C)
 
 
 def compare_three_matrices(mx1, mx2, mx3):
